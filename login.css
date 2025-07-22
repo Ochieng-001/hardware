@@ -1,0 +1,107 @@
+
+        :root {
+            --primary-blue: #0a1497;
+            --secondary-blue: #0a1497;
+            --accent-yellow: #f0c209;
+            --light-gray: #F8F9FA;
+            --white: #FFFFFF;
+        }
+        
+        body {
+            background-color: var(--white);
+            font-family: 'Arial', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+        
+        .login-container {
+            max-width: 450px;
+            margin: 0 auto;
+        }
+        
+        .login-card {
+            background: var(--white);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .login-header {
+            background: linear-gradient(135deg, var(--accent-yellow) 0%, #ffd700 100%);
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .login-header i {
+            font-size: 3rem;
+            color: var(--primary-blue);
+            margin-bottom: 10px;
+        }
+        
+        .login-header h2 {
+            color: var(--primary-blue);
+            font-weight: bold;
+            margin: 0;
+        }
+        
+        .login-body {
+            padding: 40px;
+        }
+        
+        .form-control {
+            border-radius: 25px;
+            padding: 15px 20px;
+            border: 2px solid #e9ecef;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 0.2rem rgba(10, 20, 151, 0.25);
+        }
+        
+        .input-group-text {
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            border-radius: 25px 0 0 25px;
+        }
+        
+        .btn-login {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 15px;
+            font-weight: 600;
+            color: white;
+            transition: transform 0.3s ease;
+        }
+        
+        .btn-login:hover {
+            transform: translateY(-2px);
+            color: white;
+        }
+        
+        .alert-danger {
+            border-radius: 15px;
+            border-left: 4px solid #dc3545;
+        }
+        
+        .back-link {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .back-link:hover {
+            color: white;
+        }
+        @media (max-width: 576px) {
+            .login-container {
+                padding: 20px;
+            }
+            .login-header h2 {
+                font-size: 1.5rem;
+            }
+        }
