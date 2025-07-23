@@ -115,4 +115,8 @@
                 margin-left: 0;
             }
         }
-    
+        .back-link {
+            color: rgba(6, 2, 245, 0.8);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }

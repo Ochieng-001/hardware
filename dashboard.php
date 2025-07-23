@@ -49,6 +49,98 @@ if ($_POST) {
         $success = 'Ticket updated successfully.';
     }
     
+     // handle admin profile update
+    if (isset($_POST['update_profile'])) {
+        $username = sanitizeInput($_POST['username']);
+        $email = sanitizeInput($_POST['email']);
+        $full_name = sanitizeInput($_POST['full_name']);
+        
+        if (empty($username) || empty($email) || empty($full_name)) {
+            $error = 'Please fill in all fields.';
+        } else {
+            // Update admin profile
+            $db->query("UPDATE admins SET username = :username, email = :email, full_name = :full_name WHERE id = :admin_id");
+            $db->bind(':username', $username);
+            $db->bind(':email', $email);
+            $db->bind(':full_name', $full_name);
+            $db->bind(':admin_id', $admin['id']);
+            $db->execute();
+            
+            // Update session variables
+            $_SESSION['admin_username'] = $username;
+            $_SESSION['admin_email'] = $email;
+            $_SESSION['admin_name'] = $full_name;
+            
+            $success = 'Profile updated successfully.';
+        }
+    }
+
+    // Handle password change
+    if (isset($_POST['change_password'])) {
+        $current_password = $_POST['current_password'];
+        $new_password = $_POST['new_password'];
+        $confirm_password = $_POST['confirm_password'];
+        
+        if (empty($current_password) || empty($new_password) || empty($confirm_password)) {
+            $error = 'Please fill in all fields.';
+        } elseif ($new_password !== $confirm_password) {
+            $error = 'New password and confirmation do not match.';
+        } else {
+            // Verify current password
+            $db->query("SELECT password FROM admins WHERE id = :admin_id");
+            $db->bind(':admin_id', $admin['id']);
+            $result = $db->single();
+            
+            if ($result && password_verify($current_password, $result['password'])) {
+                // Update password
+                $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
+                $db->query("UPDATE admins SET password = :password WHERE id = :admin_id");
+                $db->bind(':password', $hashed_password);
+                $db->bind(':admin_id', $admin['id']);
+                $db->execute();
+                
+                $success = 'Password changed successfully.';
+            } else {
+                $error = 'Current password is incorrect.';
+            }
+        }
+    }
+
+    // handle adding new admin
+    if (isset($_POST['add_admin'])) {
+        $username = sanitizeInput($_POST['username']);
+        $email = sanitizeInput($_POST['email']);
+        $full_name = sanitizeInput($_POST['full_name']);
+        $password = $_POST['password'];
+        $role = $_POST['role'];
+        
+        if (empty($username) || empty($email) || empty($full_name) || empty($password)) {
+            $error = 'Please fill in all fields.';
+        } else {
+            // Check if username or email already exists
+            $db->query("SELECT COUNT(*) as count FROM admins WHERE username = :username OR email = :email");
+            $db->bind(':username', $username);
+            $db->bind(':email', $email);
+            $count = $db->single()['count'];
+            
+            if ($count > 0) {
+                $error = 'Username or email already exists.';
+            } else {
+                // Insert new admin
+                $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+                $db->query("INSERT INTO admins (username, email, full_name, password, role) VALUES (:username, :email, :full_name, :password, :role)");
+                $db->bind(':username', $username);
+                $db->bind(':email', $email);
+                $db->bind(':full_name', $full_name);
+                $db->bind(':password', $hashed_password);
+                $db->bind(':role', $role);
+                $db->execute();
+                
+                $success = 'New admin added successfully.';
+            }
+        }
+    }
+
     // Update borrowing request status
     if (isset($_POST['update_borrowing_status'])) {
         $request_id = $_POST['request_id'];
@@ -204,6 +296,30 @@ function getPriorityBadge($priority) {
     }
 }
 
+// Automatically change overdue status for borrowings
+$db->query("UPDATE borrowing_requests SET status = 'overdue' WHERE status = 'active' AND due_date < NOW()");
+
+
+//Equipment usage statistics
+$db->query("
+    SELECT e.id, e.name, e.model, SUM(br.quantity_requested) as total_borrowed 
+    FROM equipment e 
+    LEFT JOIN borrowing_requests br ON e.id = br.equipment_id AND br.status IN ('active', 'returned') 
+    GROUP BY e.id
+");
+$equipment_usage = $db->resultSet();
+
+// Assistance type statistics
+$db->query("
+    SELECT aty.name as assistance_type, COUNT(at.id) as total_tickets 
+    FROM assistance_tickets at 
+    LEFT JOIN assistance_types aty ON at.assistance_type_id = aty.id 
+    GROUP BY aty.name
+");
+$assistance_type_stats = $db->resultSet();
+// Handle admin profile update
+
+
 // Handle logout
 if (isset($_GET['logout'])) {
     session_destroy();
@@ -268,6 +384,11 @@ if (isset($_GET['logout'])) {
             <li class="nav-item">
                 <a class="nav-link" href="#equipment" data-section="equipment">
                     <i class="fas fa-network-wired me-2"></i>Equipment Management
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#profile" data-section="profile">
+                    <i class="fas fa-users-cog me-2"></i>Admin Management
                 </a>
             </li>
             <li class="nav-item">
@@ -403,6 +524,112 @@ if (isset($_GET['logout'])) {
                 </div>
             </div>
         </div>
+
+        <!-- Admin Profile Section -->
+            <div id="profile-section" class="content-section" style="display: none;">
+                <h2 class="text-primary-custom mb-4">
+                    <i class="fas fa-user-cog me-2"></i>Admin Profile & Management
+                </h2>
+
+                <div class="row">
+                    <!-- Profile Update -->
+                    <div class="col-lg-6 mb-4">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-primary text-white">
+                                <i class="fas fa-user-edit me-2"></i>Update Profile
+                            </div>
+                            <div class="card-body">
+                                <form method="POST">
+                                    <div class="mb-3">
+                                        <label class="form-label">Username</label>
+                                        <input type="text" class="form-control" name="username" value="<?php echo htmlspecialchars($admin['username']); ?>" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Email</label>
+                                        <input type="email" class="form-control" name="email" value="<?php echo htmlspecialchars($admin['email']); ?>" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Full Name</label>
+                                        <input type="text" class="form-control" name="full_name" value="<?php echo htmlspecialchars($admin['name']); ?>" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary" name="update_profile">
+                                        <i class="fas fa-save me-2"></i>Update Profile
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Change Password -->
+                    <div class="col-lg-6 mb-4">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-warning text-dark">
+                                <i class="fas fa-lock me-2"></i>Change Password
+                            </div>
+                            <div class="card-body">
+                                <form method="POST">
+                                    <div class="mb-3">
+                                        <label class="form-label">Current Password</label>
+                                        <input type="password" class="form-control" name="current_password" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">New Password</label>
+                                        <input type="password" class="form-control" name="new_password" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Confirm New Password</label>
+                                        <input type="password" class="form-control" name="confirm_password" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-warning" name="change_password">
+                                        <i class="fas fa-lock me-2"></i>Change Password
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add New Admin -->
+                <div class="row">
+                    <div class="col-lg-8 mx-auto">
+                        <div class="card shadow-sm mt-4">
+                            <div class="card-header bg-success text-white">
+                                <i class="fas fa-user-plus me-2"></i>Add New Admin
+                            </div>
+                            <div class="card-body">
+                                <form method="POST">
+                                    <div class="mb-3">
+                                        <label class="form-label">Username</label>
+                                        <input type="text" class="form-control" name="username" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Email</label>
+                                        <input type="email" class="form-control" name="email" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Full Name</label>
+                                        <input type="text" class="form-control" name="full_name" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Password</label>
+                                        <input type="password" class="form-control" name="password" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Role</label>
+                                        <select class="form-select" name="role" required>
+                                            <option value="admin">Admin</option>
+                                            <option value="super_admin">Super Admin</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-success" name="add_admin">
+                                        <i class="fas fa-user-plus me-2"></i>Add Admin
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
         <!-- Tickets Section -->
         <div id="tickets-section" class="content-section" style="display: none;">
@@ -558,7 +785,6 @@ if (isset($_GET['logout'])) {
         </div>
 
         <!-- Borrowings Section -->
-
         <div id="borrowings-section" class="content-section" style="display: none;">
             <h2 class="text-primary-custom mb-4">
                 <i class="fas fa-handshake me-2"></i>Borrowing Requests Management
@@ -599,7 +825,18 @@ if (isset($_GET['logout'])) {
                                 </tr>
 
                                 <!-- Borrowing Management Modal -->
-                                <div class="modal fade<div class="row mb-3">
+                                <div class="modal fade" id="borrowingModal<?php echo $request['id']; ?>" tabindex="-1">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Manage Request #<?php echo htmlspecialchars($request['request_number']); ?></h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <form method="POST">
+                                                <div class="modal-body">
+                                                    <input type="hidden" name="request_id" value="<?php echo $request['id']; ?>">
+                                                    
+                                                    <div class="row mb-3">
                                                         <div class="col-md-6">
                                                             <strong>Student:</strong> <?php echo htmlspecialchars($request['first_name'] . ' ' . $request['last_name']); ?><br>
                                                             <strong>Email:</strong> <?php echo htmlspecialchars($request['email']); ?><br>
@@ -822,36 +1059,69 @@ if (isset($_GET['logout'])) {
         </div>
 
         <!-- Reports Section -->
-        <div id="reports-section" class="content-section" style="display: none;">
-            <button href="reports.php" class="btn btn-primary mb-4" onclick="location.href='reports.php'">
-                <i class="fas fa-chart-line me-2"></i>View Detailed Reports
-            <h2 class="text-primary-custom mb-4">
-                <i class="fas fa-chart-bar me-2"></i>Reports & Analytics
-            </h2>
-            </button>
-
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header bg-yellow-light">
-                            <h5 class="mb-0 text-primary-custom">Equipment Usage Statistics</h5>
+           <div id="reports-section" class="content-section" style="display: none;">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-yellow-light">
+                                <h5 class="mb-0 text-primary-custom">Equipment Usage Statistics</h5>
+                            </div>
+                            <div class="card-body">
+                                <?php if (!empty($equipment_usage)): ?>
+                                <table class="table table-sm table-bordered mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Equipment</th>
+                                            <th>Model</th>
+                                            <th>Total Borrowed</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($equipment_usage as $usage): ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars($usage['name']); ?></td>
+                                            <td><?php echo htmlspecialchars($usage['model']); ?></td>
+                                            <td><?php echo (int)$usage['total_borrowed']; ?></td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                                <?php else: ?>
+                                <p class="text-muted">No equipment usage data available.</p>
+                                <?php endif; ?>
+                            </div>
                         </div>
-                        <div class="card-body">
-                            <p class="text-muted">Coming soon... Equipment usage analytics and reports will be available here.</p>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-yellow-light">
+                                <h5 class="mb-0 text-primary-custom">Assistance Tickets Analytics</h5>
+                            </div>
+                            <div class="card-body">
+                                <?php if (!empty($assistance_type_stats)): ?>
+                                <table class="table table-sm table-bordered mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Assistance Type</th>
+                                            <th>Total Tickets</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($assistance_type_stats as $stat): ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars($stat['assistance_type']); ?></td>
+                                            <td><?php echo (int)$stat['total_tickets']; ?></td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                                <?php else: ?>
+                                <p class="text-muted">No assistance ticket data available.</p>
+                                <?php endif; ?>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header bg-yellow-light">
-                            <h5 class="mb-0 text-primary-custom">Assistance Tickets Analytics</h5>
-                        </div>
-                        <div class="card-body">
-                            <p class="text-muted">Coming soon... Ticket resolution analytics and performance metrics will be available here.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 

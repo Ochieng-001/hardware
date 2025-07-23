@@ -148,7 +148,7 @@ if (isset($_GET['logout'])) {
                 <div class="alert alert-success alert-custom mb-4">
                     <i class="fas fa-check-circle me-2"></i><?php echo $success; ?>
                     <div class="mt-2">
-                        <a href="my-requests.php" class="btn btn-sm btn-primary">View My Requests</a>
+                        <a href="requests.php" class="btn btn-sm btn-primary">View My Requests</a>
                         <a href="index.php" class="btn btn-sm btn-outline-primary">Back to Home</a>
                     </div>
                 </div>

@@ -47,7 +47,7 @@ if ($_POST && isset($_POST['login'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login - Hardware Lab Management System</title>
+    <title>Hardware Lab Management System</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="login.css">
@@ -56,12 +56,6 @@ if ($_POST && isset($_POST['login'])) {
     <div class="container">
         <div class="login-container">
             <!-- Back to main site -->
-            <div class="text-center mb-4">
-                <a href="../index.php" class="back-link">
-                    <i class="fas fa-arrow-left me-2"></i>Back to Student Portal
-                </a>
-            </div>
-            
             <div class="login-card">
                 <div class="login-header">
                     <i class="fas fa-user-shield"></i>
@@ -114,6 +108,12 @@ if ($_POST && isset($_POST['login'])) {
                 </div>
             </div>
         </div>
+                             <!-- Back to main site -->
+                    <div class="text-center mb-4">
+                        <a href="index.php" class="back-link">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Student Portal
+                        </a>
+                    </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>

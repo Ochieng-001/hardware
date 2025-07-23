@@ -224,7 +224,7 @@ if (isset($_GET['logout'])) {
                         </div>
                         
                         <div class="text-center mt-4">
-                            <a href="my-requests.php" class="btn btn-primary">
+                            <a href="requests.php" class="btn btn-primary">
                                 <i class="fas fa-history me-2"></i>View My Requests
                             </a>
                         </div>
