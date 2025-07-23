@@ -143,7 +143,7 @@ INSERT INTO assistance_types (name, description, estimated_duration) VALUES
 
 -- Sample Admin User (password: admin123 - should be hashed in production)
 INSERT INTO admins (username, email, password, full_name, role) VALUES
-('admin', 'admin@university.edu', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'System Administrator', 'super_admin');
+('admin', 'admin@university.edu', '$2y$10$iNsAYtaKrZTBKH8ExshmuOqTwHSd/WCTPr.A7KXYiPoHW9DgPR8.q', 'System Administrator', 'super_admin');
 
 -- Sample Students (if students table doesn't exist)
 INSERT INTO students (student_id, email, first_name, last_name, course, year_of_study) VALUES
