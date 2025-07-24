@@ -111,6 +111,106 @@ CREATE TABLE ticket_comments (
     FOREIGN KEY (admin_id) REFERENCES admins(id)
 );
 
+
+-- Feedback tables for Hardware Lab Management System
+
+-- Table for assistance ticket feedback
+CREATE TABLE assistance_feedback (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    ticket_id INT NOT NULL,
+    student_id VARCHAR(20) NOT NULL,
+    rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    satisfaction ENUM('very_dissatisfied', 'dissatisfied', 'neutral', 'satisfied', 'very_satisfied') NOT NULL,
+    response_time_rating INT CHECK (response_time_rating >= 1 AND response_time_rating <= 5),
+    service_quality_rating INT CHECK (service_quality_rating >= 1 AND service_quality_rating <= 5),
+    staff_helpfulness_rating INT CHECK (staff_helpfulness_rating >= 1 AND staff_helpfulness_rating <= 5),
+    comment TEXT,
+    suggestions TEXT,
+    would_recommend BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (ticket_id) REFERENCES assistance_tickets(id) ON DELETE CASCADE,
+    FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE,
+    UNIQUE KEY unique_ticket_feedback (ticket_id, student_id)
+);
+
+-- Table for borrowing request feedback
+CREATE TABLE borrowing_feedback (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    request_id INT NOT NULL,
+    student_id VARCHAR(20) NOT NULL,
+    rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    satisfaction ENUM('very_dissatisfied', 'dissatisfied', 'neutral', 'satisfied', 'very_satisfied') NOT NULL,
+    equipment_condition_rating INT CHECK (equipment_condition_rating >= 1 AND equipment_condition_rating <= 5),
+    service_quality_rating INT CHECK (service_quality_rating >= 1 AND service_quality_rating <= 5),
+    process_efficiency_rating INT CHECK (process_efficiency_rating >= 1 AND process_efficiency_rating <= 5),
+    comment TEXT,
+    suggestions TEXT,
+    equipment_issues TEXT,
+    would_recommend BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (request_id) REFERENCES borrowing_requests(id) ON DELETE CASCADE,
+    FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE,
+    UNIQUE KEY unique_request_feedback (request_id, student_id)
+);
+
+-- Index for better performance
+CREATE INDEX idx_assistance_feedback_student ON assistance_feedback(student_id);
+CREATE INDEX idx_assistance_feedback_rating ON assistance_feedback(rating);
+CREATE INDEX idx_assistance_feedback_created ON assistance_feedback(created_at);
+
+CREATE INDEX idx_borrowing_feedback_student ON borrowing_feedback(student_id);
+CREATE INDEX idx_borrowing_feedback_rating ON borrowing_feedback(rating);
+CREATE INDEX idx_borrowing_feedback_created ON borrowing_feedback(created_at);
+
+-- View for assistance feedback summary
+CREATE VIEW assistance_feedback_summary AS
+SELECT 
+    af.ticket_id,
+    at.ticket_number,
+    at.title,
+    af.rating,
+    af.satisfaction,
+    af.response_time_rating,
+    af.service_quality_rating,
+    af.staff_helpfulness_rating,
+    af.comment,
+    af.would_recommend,
+    af.created_at as feedback_date,
+    CONCAT(s.first_name, ' ', s.last_name) as student_name,
+    s.course,
+    a.full_name as assigned_to_name
+FROM assistance_feedback af
+JOIN assistance_tickets at ON af.ticket_id = at.id
+JOIN students s ON af.student_id = s.student_id
+LEFT JOIN admins a ON at.assigned_to = a.id;
+
+-- View for borrowing feedback summary
+CREATE VIEW borrowing_feedback_summary AS
+SELECT 
+    bf.request_id,
+    br.request_number,
+    e.name as equipment_name,
+    e.model,
+    bf.rating,
+    bf.satisfaction,
+    bf.equipment_condition_rating,
+    bf.service_quality_rating,
+    bf.process_efficiency_rating,
+    bf.comment,
+    bf.equipment_issues,
+    bf.would_recommend,
+    bf.created_at as feedback_date,
+    CONCAT(s.first_name, ' ', s.last_name) as student_name,
+    s.course,
+    a.full_name as approved_by_name
+FROM borrowing_feedback bf
+JOIN borrowing_requests br ON bf.request_id = br.id
+JOIN students s ON bf.student_id = s.student_id
+JOIN equipment e ON br.equipment_id = e.id
+LEFT JOIN admins a ON br.approved_by = a.id;
+
 -- Insert sample data
 
 -- Equipment Categories

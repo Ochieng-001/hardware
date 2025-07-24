@@ -357,6 +357,8 @@ if (isset($_GET['logout'])) {
                         <li><a class="dropdown-item" href="login.php"><i class="fas fa-home me-2"></i>Student Portal</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="?logout=1"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="feedback.php"><i class="fas fa-mail me-2"></i>Feedback</a></li>
                     </ul>
                 </div>
             </div>

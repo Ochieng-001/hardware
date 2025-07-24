@@ -79,7 +79,7 @@ $db->query("
 $db->bind(':student_id', $student_id);
 $borrowing_requests = $db->resultSet();
 
-// Helper function to get status badge class
+//Helper function to get status badge class
 function getStatusBadge($status) {
     switch($status) {
         case 'pending': return 'bg-warning text-dark';
@@ -157,6 +157,9 @@ function getPriorityBadge($priority) {
                         </a>
                         <a href="borrowing.php" class="btn btn-warning">
                             <i class="fas fa-plus"></i> New Borrowing
+                        </a>
+                        <a href="studentfeedback.php" class="btn btn-secondary ms-md-2 mb-2 mb-md-0">
+                            <i class="fas fa-comment-dots"></i> Feedback
                         </a>
                     </div>
                 </div>

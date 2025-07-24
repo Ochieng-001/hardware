@@ -125,4 +125,26 @@
             padding-bottom: 0.5rem;
             border-bottom: 2px solid #e9ecef;
         }
+
+        .star-rating {
+            display: flex;
+            gap: 2px;
+        }
+        .star-rating input[type="radio"] {
+            display: none;
+        }
+        .star-rating label {
+            cursor: pointer;
+            color: #ddd;
+            font-size: 1.2rem;
+        }
+        .star-rating label:hover,
+        .star-rating label:hover ~ label,
+        .star-rating input[type="radio"]:checked ~ label {
+            color: #ffc107;
+        }
+        .feedback-badge {
+            font-size: 0.75rem;
+        }
+
     
