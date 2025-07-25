@@ -20,258 +20,218 @@ $start_date = $_GET['start_date'] ?? date('Y-m-d', strtotime('-30 days'));
 $end_date = $_GET['end_date'] ?? date('Y-m-d');
 $report_type = $_GET['report_type'] ?? 'overview';
 
-// Overview Statistics
+// Overview Statistics - FIXED to work with existing config.php
 function getOverviewStats($db, $start_date, $end_date) {
     $stats = [];
     
     // Tickets created in period
-    $db->query("SELECT COUNT(*) as count FROM assistance_tickets WHERE DATE(created_at) BETWEEN :start_date AND :end_date");
-    $db->bind(':start_date', $start_date);
-    $db->bind(':end_date', $end_date);
-    $stats['tickets_created'] = $db->single()['count'];
+    $sql = "SELECT COUNT(*) as count FROM assistance_tickets WHERE DATE(created_at) BETWEEN '$start_date' AND '$end_date'";
+    $db->query($sql);
+    $result = $db->single();
+    $stats['tickets_created'] = $result ? $result['count'] : 0;
     
     // Tickets resolved in period
-    $db->query("SELECT COUNT(*) as count FROM assistance_tickets WHERE DATE(resolved_at) BETWEEN :start_date AND :end_date");
-    $db->bind(':start_date', $start_date);
-    $db->bind(':end_date', $end_date);
-    $stats['tickets_resolved'] = $db->single()['count'];
+    $sql = "SELECT COUNT(*) as count FROM assistance_tickets WHERE DATE(resolved_at) BETWEEN '$start_date' AND '$end_date'";
+    $db->query($sql);
+    $result = $db->single();
+    $stats['tickets_resolved'] = $result ? $result['count'] : 0;
     
     // Equipment borrowed in period
-    $db->query("SELECT COUNT(*) as count FROM borrowing_requests WHERE DATE(created_at) BETWEEN :start_date AND :end_date");
-    $db->bind(':start_date', $start_date);
-    $db->bind(':end_date', $end_date);
-    $stats['equipment_borrowed'] = $db->single()['count'];
+    $sql = "SELECT COUNT(*) as count FROM borrowing_requests WHERE DATE(created_at) BETWEEN '$start_date' AND '$end_date'";
+    $db->query($sql);
+    $result = $db->single();
+    $stats['equipment_borrowed'] = $result ? $result['count'] : 0;
     
     // Equipment returned in period
-    $db->query("SELECT COUNT(*) as count FROM borrowing_requests WHERE DATE(returned_at) BETWEEN :start_date AND :end_date");
-    $db->bind(':start_date', $start_date);
-    $db->bind(':end_date', $end_date);
-    $stats['equipment_returned'] = $db->single()['count'];
+    $sql = "SELECT COUNT(*) as count FROM borrowing_requests WHERE DATE(returned_at) BETWEEN '$start_date' AND '$end_date'";
+    $db->query($sql);
+    $result = $db->single();
+    $stats['equipment_returned'] = $result ? $result['count'] : 0;
     
-    // Current overdue items
-    $db->query("SELECT COUNT(*) as count FROM borrowing_requests WHERE status = 'overdue'");
-    $stats['overdue_items'] = $db->single()['count'];
+    // Current overdue items - NO DATE PARAMETERS
+    $sql = "SELECT COUNT(*) as count FROM borrowing_requests WHERE status = 'overdue'";
+    $db->query($sql);
+    $result = $db->single();
+    $stats['overdue_items'] = $result ? $result['count'] : 0;
     
     // Active users (students who created tickets or borrowed equipment in period)
-    $db->query("
-        SELECT COUNT(DISTINCT student_id) as count FROM (
-            SELECT student_id FROM assistance_tickets WHERE DATE(created_at) BETWEEN :start_date AND :end_date
-            UNION
-            SELECT student_id FROM borrowing_requests WHERE DATE(created_at) BETWEEN :start_date AND :end_date
-        ) as active_users
-    ");
-    $db->bind(':start_date', $start_date);
-    $db->bind(':end_date', $end_date);
-    $stats['active_users'] = $db->single()['count'];
+    $sql = "SELECT COUNT(DISTINCT student_id) as count FROM (
+                SELECT student_id FROM assistance_tickets WHERE DATE(created_at) BETWEEN '$start_date' AND '$end_date'
+                UNION
+                SELECT student_id FROM borrowing_requests WHERE DATE(created_at) BETWEEN '$start_date' AND '$end_date'
+            ) as active_users";
+    $db->query($sql);
+    $result = $db->single();
+    $stats['active_users'] = $result ? $result['count'] : 0;
     
     return $stats;
 }
 
-// Ticket Analytics
+// Ticket Analytics - FIXED
 function getTicketAnalytics($db, $start_date, $end_date) {
     $analytics = [];
     
     // Tickets by status
-    $db->query("
-        SELECT status, COUNT(*) as count 
-        FROM assistance_tickets 
-        WHERE DATE(created_at) BETWEEN :start_date AND :end_date
-        GROUP BY status
-        ORDER BY count DESC
-    ");
-    $db->bind(':start_date', $start_date);
-    $db->bind(':end_date', $end_date);
+    $sql = "SELECT status, COUNT(*) as count 
+            FROM assistance_tickets 
+            WHERE DATE(created_at) BETWEEN '$start_date' AND '$end_date'
+            GROUP BY status
+            ORDER BY count DESC";
+    $db->query($sql);
     $analytics['by_status'] = $db->resultSet();
     
     // Tickets by priority
-    $db->query("
-        SELECT priority, COUNT(*) as count 
-        FROM assistance_tickets 
-        WHERE DATE(created_at) BETWEEN :start_date AND :end_date
-        GROUP BY priority
-        ORDER BY FIELD(priority, 'urgent', 'high', 'medium', 'low')
-    ");
-    $db->bind(':start_date', $start_date);
-    $db->bind(':end_date', $end_date);
+    $sql = "SELECT priority, COUNT(*) as count 
+            FROM assistance_tickets 
+            WHERE DATE(created_at) BETWEEN '$start_date' AND '$end_date'
+            GROUP BY priority
+            ORDER BY FIELD(priority, 'urgent', 'high', 'medium', 'low')";
+    $db->query($sql);
     $analytics['by_priority'] = $db->resultSet();
     
     // Tickets by assistance type
-    $db->query("
-        SELECT at.name, COUNT(*) as count 
-        FROM assistance_tickets t
-        LEFT JOIN assistance_types at ON t.assistance_type_id = at.id
-        WHERE DATE(t.created_at) BETWEEN :start_date AND :end_date
-        GROUP BY t.assistance_type_id
-        ORDER BY count DESC
-        LIMIT 10
-    ");
-    $db->bind(':start_date', $start_date);
-    $db->bind(':end_date', $end_date);
+    $sql = "SELECT at.name, COUNT(*) as count 
+            FROM assistance_tickets t
+            LEFT JOIN assistance_types at ON t.assistance_type_id = at.id
+            WHERE DATE(t.created_at) BETWEEN '$start_date' AND '$end_date'
+            GROUP BY t.assistance_type_id
+            ORDER BY count DESC
+            LIMIT 10";
+    $db->query($sql);
     $analytics['by_type'] = $db->resultSet();
     
     // Average resolution time (in hours)
-    $db->query("
-        SELECT AVG(TIMESTAMPDIFF(HOUR, created_at, resolved_at)) as avg_resolution_hours
-        FROM assistance_tickets 
-        WHERE resolved_at IS NOT NULL 
-        AND DATE(resolved_at) BETWEEN :start_date AND :end_date
-    ");
-    $db->bind(':start_date', $start_date);
-    $db->bind(':end_date', $end_date);
+    $sql = "SELECT AVG(TIMESTAMPDIFF(HOUR, created_at, resolved_at)) as avg_resolution_hours
+            FROM assistance_tickets 
+            WHERE resolved_at IS NOT NULL 
+            AND DATE(resolved_at) BETWEEN '$start_date' AND '$end_date'";
+    $db->query($sql);
     $result = $db->single();
     $analytics['avg_resolution_time'] = round($result['avg_resolution_hours'] ?? 0, 2);
     
     // Tickets by admin
-    $db->query("
-        SELECT a.full_name, COUNT(*) as count 
-        FROM assistance_tickets t
-        LEFT JOIN admins a ON t.assigned_to = a.id
-        WHERE DATE(t.created_at) BETWEEN :start_date AND :end_date
-        AND t.assigned_to IS NOT NULL
-        GROUP BY t.assigned_to
-        ORDER BY count DESC
-    ");
-    $db->bind(':start_date', $start_date);
-    $db->bind(':end_date', $end_date);
+    $sql = "SELECT a.full_name, COUNT(*) as count 
+            FROM assistance_tickets t
+            LEFT JOIN admins a ON t.assigned_to = a.id
+            WHERE DATE(t.created_at) BETWEEN '$start_date' AND '$end_date'
+            AND t.assigned_to IS NOT NULL
+            GROUP BY t.assigned_to
+            ORDER BY count DESC";
+    $db->query($sql);
     $analytics['by_admin'] = $db->resultSet();
     
     // Daily ticket creation trend
-    $db->query("
-        SELECT DATE(created_at) as date, COUNT(*) as count 
-        FROM assistance_tickets 
-        WHERE DATE(created_at) BETWEEN :start_date AND :end_date
-        GROUP BY DATE(created_at)
-        ORDER BY date
-    ");
-    $db->bind(':start_date', $start_date);
-    $db->bind(':end_date', $end_date);
+    $sql = "SELECT DATE(created_at) as date, COUNT(*) as count 
+            FROM assistance_tickets 
+            WHERE DATE(created_at) BETWEEN '$start_date' AND '$end_date'
+            GROUP BY DATE(created_at)
+            ORDER BY date";
+    $db->query($sql);
     $analytics['daily_trend'] = $db->resultSet();
     
     return $analytics;
 }
 
-// Equipment Analytics
+// Equipment Analytics - FIXED
 function getEquipmentAnalytics($db, $start_date, $end_date) {
     $analytics = [];
     
     // Most borrowed equipment
-    $db->query("
-        SELECT e.name, e.model, COUNT(*) as borrow_count
-        FROM borrowing_requests br
-        LEFT JOIN equipment e ON br.equipment_id = e.id
-        WHERE DATE(br.created_at) BETWEEN :start_date AND :end_date
-        GROUP BY br.equipment_id
-        ORDER BY borrow_count DESC
-        LIMIT 10
-    ");
-    $db->bind(':start_date', $start_date);
-    $db->bind(':end_date', $end_date);
+    $sql = "SELECT e.name, e.model, COUNT(*) as borrow_count
+            FROM borrowing_requests br
+            LEFT JOIN equipment e ON br.equipment_id = e.id
+            WHERE DATE(br.created_at) BETWEEN '$start_date' AND '$end_date'
+            GROUP BY br.equipment_id
+            ORDER BY borrow_count DESC
+            LIMIT 10";
+    $db->query($sql);
     $analytics['most_borrowed'] = $db->resultSet();
     
     // Equipment by category usage
-    $db->query("
-        SELECT ec.name as category, COUNT(*) as borrow_count
-        FROM borrowing_requests br
-        LEFT JOIN equipment e ON br.equipment_id = e.id
-        LEFT JOIN equipment_categories ec ON e.category_id = ec.id
-        WHERE DATE(br.created_at) BETWEEN :start_date AND :end_date
-        GROUP BY ec.id
-        ORDER BY borrow_count DESC
-    ");
-    $db->bind(':start_date', $start_date);
-    $db->bind(':end_date', $end_date);
+    $sql = "SELECT ec.name as category, COUNT(*) as borrow_count
+            FROM borrowing_requests br
+            LEFT JOIN equipment e ON br.equipment_id = e.id
+            LEFT JOIN equipment_categories ec ON e.category_id = ec.id
+            WHERE DATE(br.created_at) BETWEEN '$start_date' AND '$end_date'
+            GROUP BY ec.id
+            ORDER BY borrow_count DESC";
+    $db->query($sql);
     $analytics['by_category'] = $db->resultSet();
     
     // Borrowing request status distribution
-    $db->query("
-        SELECT status, COUNT(*) as count
-        FROM borrowing_requests
-        WHERE DATE(created_at) BETWEEN :start_date AND :end_date
-        GROUP BY status
-        ORDER BY count DESC
-    ");
-    $db->bind(':start_date', $start_date);
-    $db->bind(':end_date', $end_date);
+    $sql = "SELECT status, COUNT(*) as count
+            FROM borrowing_requests
+            WHERE DATE(created_at) BETWEEN '$start_date' AND '$end_date'
+            GROUP BY status
+            ORDER BY count DESC";
+    $db->query($sql);
     $analytics['by_status'] = $db->resultSet();
     
-    // Equipment utilization rate
-    $db->query("
-        SELECT 
-            e.name,
-            e.total_quantity,
-            e.quantity_available,
-            (e.total_quantity - e.quantity_available) as currently_borrowed,
-            ROUND(((e.total_quantity - e.quantity_available) / e.total_quantity) * 100, 2) as utilization_rate
-        FROM equipment e
-        WHERE e.total_quantity > 0
-        ORDER BY utilization_rate DESC
-        LIMIT 15
-    ");
+    // Equipment utilization rate - NO DATE PARAMETERS (current status)
+    $sql = "SELECT 
+                e.name,
+                e.total_quantity,
+                e.quantity_available,
+                (e.total_quantity - e.quantity_available) as currently_borrowed,
+                ROUND(((e.total_quantity - e.quantity_available) / e.total_quantity) * 100, 2) as utilization_rate
+            FROM equipment e
+            WHERE e.total_quantity > 0
+            ORDER BY utilization_rate DESC
+            LIMIT 15";
+    $db->query($sql);
     $analytics['utilization'] = $db->resultSet();
     
     // Average borrow duration
-    $db->query("
-        SELECT AVG(TIMESTAMPDIFF(DAY, borrowed_at, returned_at)) as avg_days
-        FROM borrowing_requests
-        WHERE returned_at IS NOT NULL
-        AND DATE(returned_at) BETWEEN :start_date AND :end_date
-    ");
-    $db->bind(':start_date', $start_date);
-    $db->bind(':end_date', $end_date);
+    $sql = "SELECT AVG(TIMESTAMPDIFF(DAY, borrowed_at, returned_at)) as avg_days
+            FROM borrowing_requests
+            WHERE returned_at IS NOT NULL
+            AND DATE(returned_at) BETWEEN '$start_date' AND '$end_date'";
+    $db->query($sql);
     $result = $db->single();
     $analytics['avg_borrow_duration'] = round($result['avg_days'] ?? 0, 1);
     
     return $analytics;
 }
 
-// Student Activity Analytics
+// Student Activity Analytics - FIXED
 function getStudentAnalytics($db, $start_date, $end_date) {
     $analytics = [];
     
     // Most active students (by tickets)
-    $db->query("
-        SELECT s.first_name, s.last_name, s.student_id, s.course, COUNT(*) as ticket_count
-        FROM assistance_tickets t
-        LEFT JOIN students s ON t.student_id = s.student_id
-        WHERE DATE(t.created_at) BETWEEN :start_date AND :end_date
-        GROUP BY t.student_id
-        ORDER BY ticket_count DESC
-        LIMIT 10
-    ");
-    $db->bind(':start_date', $start_date);
-    $db->bind(':end_date', $end_date);
+    $sql = "SELECT s.first_name, s.last_name, s.student_id, s.course, COUNT(*) as ticket_count
+            FROM assistance_tickets t
+            LEFT JOIN students s ON t.student_id = s.student_id
+            WHERE DATE(t.created_at) BETWEEN '$start_date' AND '$end_date'
+            GROUP BY t.student_id
+            ORDER BY ticket_count DESC
+            LIMIT 10";
+    $db->query($sql);
     $analytics['most_active_tickets'] = $db->resultSet();
     
     // Most active students (by borrowing)
-    $db->query("
-        SELECT s.first_name, s.last_name, s.student_id, s.course, COUNT(*) as borrow_count
-        FROM borrowing_requests br
-        LEFT JOIN students s ON br.student_id = s.student_id
-        WHERE DATE(br.created_at) BETWEEN :start_date AND :end_date
-        GROUP BY br.student_id
-        ORDER BY borrow_count DESC
-        LIMIT 10
-    ");
-    $db->bind(':start_date', $start_date);
-    $db->bind(':end_date', $end_date);
+    $sql = "SELECT s.first_name, s.last_name, s.student_id, s.course, COUNT(*) as borrow_count
+            FROM borrowing_requests br
+            LEFT JOIN students s ON br.student_id = s.student_id
+            WHERE DATE(br.created_at) BETWEEN '$start_date' AND '$end_date'
+            GROUP BY br.student_id
+            ORDER BY borrow_count DESC
+            LIMIT 10";
+    $db->query($sql);
     $analytics['most_active_borrowing'] = $db->resultSet();
     
     // Activity by course
-    $db->query("
-        SELECT 
+     $sql = "SELECT 
             s.course,
             COUNT(DISTINCT t.id) as ticket_count,
             COUNT(DISTINCT br.id) as borrow_count,
             COUNT(DISTINCT s.student_id) as student_count
         FROM students s
-        LEFT JOIN assistance_tickets t ON s.student_id = t.student_id AND DATE(t.created_at) BETWEEN :start_date AND :end_date
-        LEFT JOIN borrowing_requests br ON s.student_id = br.student_id AND DATE(br.created_at) BETWEEN :start_date AND :end_date
+        LEFT JOIN assistance_tickets t ON s.student_id = t.student_id AND DATE(t.created_at) BETWEEN '$start_date' AND '$end_date'
+        LEFT JOIN borrowing_requests br ON s.student_id = br.student_id AND DATE(br.created_at) BETWEEN '$start_date' AND '$end_date'
         WHERE s.course IS NOT NULL
         GROUP BY s.course
-        ORDER BY (ticket_count + borrow_count) DESC
-    ");
-    $db->bind(':start_date', $start_date);
-    $db->bind(':end_date', $end_date);
+        ORDER BY (COUNT(DISTINCT t.id) + COUNT(DISTINCT br.id)) DESC";
+    $db->query($sql);
     $analytics['by_course'] = $db->resultSet();
     
     return $analytics;
@@ -547,12 +507,18 @@ if (isset($_GET['logout'])) {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php foreach ($ticket_analytics['by_type'] as $type): ?>
-                                    <tr>
-                                        <td><?php echo htmlspecialchars($type['name'] ?? 'General'); ?></td>
-                                        <td><span class="badge bg-primary"><?php echo $type['count']; ?></span></td>
-                                    </tr>
-                                    <?php endforeach; ?>
+                                    <?php if (!empty($ticket_analytics['by_type'])): ?>
+                                        <?php foreach ($ticket_analytics['by_type'] as $type): ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars($type['name'] ?? 'General'); ?></td>
+                                            <td><span class="badge bg-primary"><?php echo $type['count']; ?></span></td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="2" class="text-center text-muted">No data available</td>
+                                        </tr>
+                                    <?php endif; ?>
                                 </tbody>
                             </table>
                         </div>
@@ -580,12 +546,18 @@ if (isset($_GET['logout'])) {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php foreach ($ticket_analytics['by_admin'] as $admin_stat): ?>
-                                    <tr>
-                                        <td><?php echo htmlspecialchars($admin_stat['full_name']); ?></td>
-                                        <td><span class="badge bg-success"><?php echo $admin_stat['count']; ?></span></td>
-                                    </tr>
-                                    <?php endforeach; ?>
+                                    <?php if (!empty($ticket_analytics['by_admin'])): ?>
+                                        <?php foreach ($ticket_analytics['by_admin'] as $admin_stat): ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars($admin_stat['full_name']); ?></td>
+                                            <td><span class="badge bg-success"><?php echo $admin_stat['count']; ?></span></td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="2" class="text-center text-muted">No data available</td>
+                                        </tr>
+                                    <?php endif; ?>
                                 </tbody>
                             </table>
                         </div>
@@ -614,13 +586,19 @@ if (isset($_GET['logout'])) {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php foreach ($equipment_analytics['most_borrowed'] as $equipment): ?>
-                                    <tr>
-                                        <td><?php echo htmlspecialchars($equipment['name']); ?></td>
-                                        <td><?php echo htmlspecialchars($equipment['model']); ?></td>
-                                        <td><span class="badge bg-info"><?php echo $equipment['borrow_count']; ?></span></td>
-                                    </tr>
-                                    <?php endforeach; ?>
+                                    <?php if (!empty($equipment_analytics['most_borrowed'])): ?>
+                                        <?php foreach ($equipment_analytics['most_borrowed'] as $equipment): ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars($equipment['name']); ?></td>
+                                            <td><?php echo htmlspecialchars($equipment['model']); ?></td>
+                                            <td><span class="badge bg-info"><?php echo $equipment['borrow_count']; ?></span></td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="3" class="text-center text-muted">No data available</td>
+                                        </tr>
+                                    <?php endif; ?>
                                 </tbody>
                             </table>
                         </div>
@@ -659,39 +637,286 @@ if (isset($_GET['logout'])) {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php foreach ($equipment_analytics['utilization'] as $util): ?>
-                                    <tr>
-                                        <td><?php echo htmlspecialchars($util['name']); ?></td>
-                                        <td><?php echo $util['total_quantity']; ?></td>
-                                        <td><?php echo $util['quantity_available']; ?></td>
-                                        <td>
-                                            <div class="progress" style="height: 20px;">
-                                                <div class="progress-bar" role="progressbar" 
-                                                     style="width: <?php echo $util['utilization_rate']; ?>%">
-                                                    <?php echo $util['utilization_rate']; ?>%
+                                    <?php if (!empty($equipment_analytics['utilization'])): ?>
+                                        <?php foreach ($equipment_analytics['utilization'] as $util): ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars($util['name']); ?></td>
+                                            <td><?php echo $util['total_quantity']; ?></td>
+                                            <td><?php echo $util['quantity_available']; ?></td>
+                                            <td>
+                                                <div class="progress" style="height: 20px;">
+                                                    <div class="progress-bar" role="progressbar" 
+                                                         style="width: <?php echo $util['utilization_rate']; ?>%">
+                                                        <?php echo $util['utilization_rate']; ?>%
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                                                        <?php else: ?>
+                                                                            <tr>
+                                                                                <td colspan="4" class="text-center text-muted">No data available</td>
+                                                                            </tr>
+                                                                        <?php endif; ?>
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="card">
+                                                        <div class="card-header bg-yellow-light">
+                                                            <h5 class="mb-0 text-primary-custom">Average Borrow Duration</h5>
+                                                        </div>
+                                                        <div class="card-body text-center">
+                                                            <h3 class="text-primary-custom"><?php echo $equipment_analytics['avg_borrow_duration']; ?> days</h3>
+                                                            <p class="text-muted">Average time items are borrowed</p>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </td>
-                                    </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-yellow-light">
-                        <h5 class="mb-0 text-primary-custom">Average Borrow Duration</h5>
-                    </div>
-                    <div class="card-body text-center">
-                        <h3 class="text-primary-custom"><?php echo $equipment_analytics['avg_borrow_duration']; ?> days</h3>
-                        <p class="text-muted">Average Duration of Borrowed Items</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <?php endif; ?>
+                                            <?php endif; ?>
+                                    
+                                            <!-- Student Analytics -->
+                                            <?php if ($student_analytics): ?>
+                                            <div class="row mb-4">
+                                                <div class="col-md-6">
+                                                    <div class="card">
+                                                        <div class="card-header bg-yellow-light">
+                                                            <h5 class="mb-0 text-primary-custom">Most Active Students (Tickets)</h5>
+                                                        </div>
+                                                        <div class="card-body">
+                                                            <div class="table-responsive">
+                                                                <table class="table table-sm">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th>Name</th>
+                                                                            <th>Student ID</th>
+                                                                            <th>Course</th>
+                                                                            <th>Tickets</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        <?php if (!empty($student_analytics['most_active_tickets'])): ?>
+                                                                            <?php foreach ($student_analytics['most_active_tickets'] as $student): ?>
+                                                                            <tr>
+                                                                                <td><?php echo htmlspecialchars($student['first_name'] . ' ' . $student['last_name']); ?></td>
+                                                                                <td><?php echo htmlspecialchars($student['student_id']); ?></td>
+                                                                                <td><?php echo htmlspecialchars($student['course']); ?></td>
+                                                                                <td><span class="badge bg-primary"><?php echo $student['ticket_count']; ?></span></td>
+                                                                            </tr>
+                                                                            <?php endforeach; ?>
+                                                                        <?php else: ?>
+                                                                            <tr>
+                                                                                <td colspan="4" class="text-center text-muted">No data available</td>
+                                                                            </tr>
+                                                                        <?php endif; ?>
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="card">
+                                                        <div class="card-header bg-yellow-light">
+                                                            <h5 class="mb-0 text-primary-custom">Most Active Students (Borrowing)</h5>
+                                                        </div>
+                                                        <div class="card-body">
+                                                            <div class="table-responsive">
+                                                                <table class="table table-sm">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th>Name</th>
+                                                                            <th>Student ID</th>
+                                                                            <th>Course</th>
+                                                                            <th>Borrows</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        <?php if (!empty($student_analytics['most_active_borrowing'])): ?>
+                                                                            <?php foreach ($student_analytics['most_active_borrowing'] as $student): ?>
+                                                                            <tr>
+                                                                                <td><?php echo htmlspecialchars($student['first_name'] . ' ' . $student['last_name']); ?></td>
+                                                                                <td><?php echo htmlspecialchars($student['student_id']); ?></td>
+                                                                                <td><?php echo htmlspecialchars($student['course']); ?></td>
+                                                                                <td><span class="badge bg-info"><?php echo $student['borrow_count']; ?></span></td>
+                                                                            </tr>
+                                                                            <?php endforeach; ?>
+                                                                        <?php else: ?>
+                                                                            <tr>
+                                                                                <td colspan="4" class="text-center text-muted">No data available</td>
+                                                                            </tr>
+                                                                        <?php endif; ?>
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                    
+                                            <div class="row mb-4">
+                                                <div class="col-12">
+                                                    <div class="card">
+                                                        <div class="card-header bg-yellow-light">
+                                                            <h5 class="mb-0 text-primary-custom">Activity by Course</h5>
+                                                        </div>
+                                                        <div class="card-body">
+                                                            <div class="table-responsive">
+                                                                <table class="table table-sm">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th>Course</th>
+                                                                            <th>Tickets</th>
+                                                                            <th>Borrows</th>
+                                                                            <th>Students</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        <?php if (!empty($student_analytics['by_course'])): ?>
+                                                                            <?php foreach ($student_analytics['by_course'] as $course): ?>
+                                                                            <tr>
+                                                                                <td><?php echo htmlspecialchars($course['course']); ?></td>
+                                                                                <td><span class="badge bg-primary"><?php echo $course['ticket_count']; ?></span></td>
+                                                                                <td><span class="badge bg-info"><?php echo $course['borrow_count']; ?></span></td>
+                                                                                <td><span class="badge bg-secondary"><?php echo $course['student_count']; ?></span></td>
+                                                                            </tr>
+                                                                            <?php endforeach; ?>
+                                                                        <?php else: ?>
+                                                                            <tr>
+                                                                                <td colspan="4" class="text-center text-muted">No data available</td>
+                                                                            </tr>
+                                                                        <?php endif; ?>
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <?php endif; ?>
+                                    
+                                            <!-- Ticket Daily Trend Chart -->
+                                            <?php if ($ticket_analytics && !empty($ticket_analytics['daily_trend'])): ?>
+                                            <div class="row mb-4">
+                                                <div class="col-12">
+                                                    <div class="card">
+                                                        <div class="card-header bg-yellow-light">
+                                                            <h5 class="mb-0 text-primary-custom">Daily Ticket Creation Trend</h5>
+                                                        </div>
+                                                        <div class="card-body">
+                                                            <div class="chart-container">
+                                                                <canvas id="ticketDailyTrendChart"></canvas>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <?php endif; ?>
+                                    
+                                        </div>
+                                    
+                                        <!-- Chart.js Scripts -->
+                                        <script>
+                                            // Tickets by Status
+                                            <?php if ($ticket_analytics && !empty($ticket_analytics['by_status'])): ?>
+                                            const ticketStatusCtx = document.getElementById('ticketStatusChart').getContext('2d');
+                                            new Chart(ticketStatusCtx, {
+                                                type: 'doughnut',
+                                                data: {
+                                                    labels: <?php echo json_encode(array_column($ticket_analytics['by_status'], 'status')); ?>,
+                                                    datasets: [{
+                                                        data: <?php echo json_encode(array_column($ticket_analytics['by_status'], 'count')); ?>,
+                                                        backgroundColor: [
+                                                            '#f0c209', '#0a1497', '#28a745', '#dc3545', '#6c757d', '#17a2b8', '#ffc107'
+                                                        ]
+                                                    }]
+                                                },
+                                                options: {
+                                                    plugins: {
+                                                        legend: { position: 'bottom' }
+                                                    }
+                                                }
+                                            });
+                                            <?php endif; ?>
+                                    
+                                            // Tickets by Priority
+                                            <?php if ($ticket_analytics && !empty($ticket_analytics['by_priority'])): ?>
+                                            const ticketPriorityCtx = document.getElementById('ticketPriorityChart').getContext('2d');
+                                            new Chart(ticketPriorityCtx, {
+                                                type: 'pie',
+                                                data: {
+                                                    labels: <?php echo json_encode(array_column($ticket_analytics['by_priority'], 'priority')); ?>,
+                                                    datasets: [{
+                                                        data: <?php echo json_encode(array_column($ticket_analytics['by_priority'], 'count')); ?>,
+                                                        backgroundColor: [
+                                                            '#6c757d', '#0a1497', '#f0c209', '#dc3545'
+                                                        ]
+                                                    }]
+                                                },
+                                                options: {
+                                                    plugins: {
+                                                        legend: { position: 'bottom' }
+                                                    }
+                                                }
+                                            });
+                                            <?php endif; ?>
+                                    
+                                            // Equipment by Category
+                                            <?php if ($equipment_analytics && !empty($equipment_analytics['by_category'])): ?>
+                                            const equipmentCategoryCtx = document.getElementById('equipmentCategoryChart').getContext('2d');
+                                            new Chart(equipmentCategoryCtx, {
+                                                type: 'bar',
+                                                data: {
+                                                    labels: <?php echo json_encode(array_column($equipment_analytics['by_category'], 'category')); ?>,
+                                                    datasets: [{
+                                                        label: 'Borrows',
+                                                        data: <?php echo json_encode(array_column($equipment_analytics['by_category'], 'borrow_count')); ?>,
+                                                        backgroundColor: '#0a1497'
+                                                    }]
+                                                },
+                                                options: {
+                                                    plugins: {
+                                                        legend: { display: false }
+                                                    },
+                                                    scales: {
+                                                        x: { beginAtZero: true },
+                                                        y: { beginAtZero: true }
+                                                    }
+                                                }
+                                            });
+                                            <?php endif; ?>
+                                    
+                                            // Ticket Daily Trend
+                                            <?php if ($ticket_analytics && !empty($ticket_analytics['daily_trend'])): ?>
+                                            const ticketDailyTrendCtx = document.getElementById('ticketDailyTrendChart').getContext('2d');
+                                            new Chart(ticketDailyTrendCtx, {
+                                                type: 'line',
+                                                data: {
+                                                    labels: <?php echo json_encode(array_column($ticket_analytics['daily_trend'], 'date')); ?>,
+                                                    datasets: [{
+                                                        label: 'Tickets Created',
+                                                        data: <?php echo json_encode(array_column($ticket_analytics['daily_trend'], 'count')); ?>,
+                                                        backgroundColor: 'rgba(10, 20, 151, 0.2)',
+                                                        borderColor: '#0a1497',
+                                                        fill: true,
+                                                        tension: 0.3
+                                                    }]
+                                                },
+                                                options: {
+                                                    plugins: {
+                                                        legend: { display: false }
+                                                    },
+                                                    scales: {
+                                                        x: { beginAtZero: true },
+                                                        y: { beginAtZero: true }
+                                                    }
+                                                }
+                                            });
+                                            <?php endif; ?>
+                                        </script>
+                                        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
                                     </body>
                                     </html>

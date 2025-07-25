@@ -357,8 +357,6 @@ if (isset($_GET['logout'])) {
                         <li><a class="dropdown-item" href="login.php"><i class="fas fa-home me-2"></i>Student Portal</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="?logout=1"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="feedback.php"><i class="fas fa-mail me-2"></i>Feedback</a></li>
                     </ul>
                 </div>
             </div>
@@ -459,6 +457,27 @@ if (isset($_GET['logout'])) {
                             <i class="fas fa-exclamation-triangle text-danger" style="font-size: 2rem;"></i>
                             <h3 class="text-primary-custom mt-2"><?php echo $overdue_items; ?></h3>
                             <p class="text-muted mb-0">Overdue Items</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- feedback -->
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <a href="feedback.php" class="text-decoration-none">
+                                <i class="fas fa-comments text-secondary" style="font-size: 2rem;"></i>
+                                <h3 class="text-primary-custom mt-2">Feedback</h3>
+                            </a> 
+                        </div>
+                    </div>
+                </div>
+                 <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <a href="reports.php" class="text-decoration-none">
+                                <i class="fas fa-chart text-secondary" style="font-size: 2rem;"></i>
+                                <h3 class="text-primary-custom mt-2">Reports</h3>
+                            </a> 
                         </div>
                     </div>
                 </div>

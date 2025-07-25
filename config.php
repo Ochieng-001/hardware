@@ -112,7 +112,7 @@ class Database {
     }
 }
 
-// Helper Functions
+// // Helper Functions
 function generateTicketNumber() {
     return 'TK' . date('Ymd') . rand(1000, 9999);
 }
