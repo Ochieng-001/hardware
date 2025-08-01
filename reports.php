@@ -344,6 +344,28 @@ if (isset($_GET['logout'])) {
             margin-bottom: 2rem;
         }
         
+        /* Responsive chart sizing for pie charts */
+        .pie-chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 2rem;
+        }
+        
+        @media (min-width: 992px) {
+            .pie-chart-container {
+                height: 250px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+        }
+        
+        @media (min-width: 1200px) {
+            .pie-chart-container {
+                height: 280px;
+            }
+        }
+        
         .table th {
             border-top: none;
             color: var(--primary-blue);
@@ -471,7 +493,7 @@ if (isset($_GET['logout'])) {
                         <h5 class="mb-0 text-primary-custom">Tickets by Status</h5>
                     </div>
                     <div class="card-body">
-                        <div class="chart-container">
+                        <div class="pie-chart-container">
                             <canvas id="ticketStatusChart"></canvas>
                         </div>
                     </div>
@@ -483,7 +505,7 @@ if (isset($_GET['logout'])) {
                         <h5 class="mb-0 text-primary-custom">Tickets by Priority</h5>
                     </div>
                     <div class="card-body">
-                        <div class="chart-container">
+                        <div class="pie-chart-container">
                             <canvas id="ticketPriorityChart"></canvas>
                         </div>
                     </div>
@@ -653,270 +675,290 @@ if (isset($_GET['logout'])) {
                                             </td>
                                         </tr>
                                         <?php endforeach; ?>
-                                                                        <?php else: ?>
-                                                                            <tr>
-                                                                                <td colspan="4" class="text-center text-muted">No data available</td>
-                                                                            </tr>
-                                                                        <?php endif; ?>
-                                                                    </tbody>
-                                                                </table>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="card">
-                                                        <div class="card-header bg-yellow-light">
-                                                            <h5 class="mb-0 text-primary-custom">Average Borrow Duration</h5>
-                                                        </div>
-                                                        <div class="card-body text-center">
-                                                            <h3 class="text-primary-custom"><?php echo $equipment_analytics['avg_borrow_duration']; ?> days</h3>
-                                                            <p class="text-muted">Average time items are borrowed</p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <?php endif; ?>
-                                    
-                                            <!-- Student Analytics -->
-                                            <?php if ($student_analytics): ?>
-                                            <div class="row mb-4">
-                                                <div class="col-md-6">
-                                                    <div class="card">
-                                                        <div class="card-header bg-yellow-light">
-                                                            <h5 class="mb-0 text-primary-custom">Most Active Students (Tickets)</h5>
-                                                        </div>
-                                                        <div class="card-body">
-                                                            <div class="table-responsive">
-                                                                <table class="table table-sm">
-                                                                    <thead>
-                                                                        <tr>
-                                                                            <th>Name</th>
-                                                                            <th>Student ID</th>
-                                                                            <th>Course</th>
-                                                                            <th>Tickets</th>
-                                                                        </tr>
-                                                                    </thead>
-                                                                    <tbody>
-                                                                        <?php if (!empty($student_analytics['most_active_tickets'])): ?>
-                                                                            <?php foreach ($student_analytics['most_active_tickets'] as $student): ?>
-                                                                            <tr>
-                                                                                <td><?php echo htmlspecialchars($student['first_name'] . ' ' . $student['last_name']); ?></td>
-                                                                                <td><?php echo htmlspecialchars($student['student_id']); ?></td>
-                                                                                <td><?php echo htmlspecialchars($student['course']); ?></td>
-                                                                                <td><span class="badge bg-primary"><?php echo $student['ticket_count']; ?></span></td>
-                                                                            </tr>
-                                                                            <?php endforeach; ?>
-                                                                        <?php else: ?>
-                                                                            <tr>
-                                                                                <td colspan="4" class="text-center text-muted">No data available</td>
-                                                                            </tr>
-                                                                        <?php endif; ?>
-                                                                    </tbody>
-                                                                </table>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="card">
-                                                        <div class="card-header bg-yellow-light">
-                                                            <h5 class="mb-0 text-primary-custom">Most Active Students (Borrowing)</h5>
-                                                        </div>
-                                                        <div class="card-body">
-                                                            <div class="table-responsive">
-                                                                <table class="table table-sm">
-                                                                    <thead>
-                                                                        <tr>
-                                                                            <th>Name</th>
-                                                                            <th>Student ID</th>
-                                                                            <th>Course</th>
-                                                                            <th>Borrows</th>
-                                                                        </tr>
-                                                                    </thead>
-                                                                    <tbody>
-                                                                        <?php if (!empty($student_analytics['most_active_borrowing'])): ?>
-                                                                            <?php foreach ($student_analytics['most_active_borrowing'] as $student): ?>
-                                                                            <tr>
-                                                                                <td><?php echo htmlspecialchars($student['first_name'] . ' ' . $student['last_name']); ?></td>
-                                                                                <td><?php echo htmlspecialchars($student['student_id']); ?></td>
-                                                                                <td><?php echo htmlspecialchars($student['course']); ?></td>
-                                                                                <td><span class="badge bg-info"><?php echo $student['borrow_count']; ?></span></td>
-                                                                            </tr>
-                                                                            <?php endforeach; ?>
-                                                                        <?php else: ?>
-                                                                            <tr>
-                                                                                <td colspan="4" class="text-center text-muted">No data available</td>
-                                                                            </tr>
-                                                                        <?php endif; ?>
-                                                                    </tbody>
-                                                                </table>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                    
-                                            <div class="row mb-4">
-                                                <div class="col-12">
-                                                    <div class="card">
-                                                        <div class="card-header bg-yellow-light">
-                                                            <h5 class="mb-0 text-primary-custom">Activity by Course</h5>
-                                                        </div>
-                                                        <div class="card-body">
-                                                            <div class="table-responsive">
-                                                                <table class="table table-sm">
-                                                                    <thead>
-                                                                        <tr>
-                                                                            <th>Course</th>
-                                                                            <th>Tickets</th>
-                                                                            <th>Borrows</th>
-                                                                            <th>Students</th>
-                                                                        </tr>
-                                                                    </thead>
-                                                                    <tbody>
-                                                                        <?php if (!empty($student_analytics['by_course'])): ?>
-                                                                            <?php foreach ($student_analytics['by_course'] as $course): ?>
-                                                                            <tr>
-                                                                                <td><?php echo htmlspecialchars($course['course']); ?></td>
-                                                                                <td><span class="badge bg-primary"><?php echo $course['ticket_count']; ?></span></td>
-                                                                                <td><span class="badge bg-info"><?php echo $course['borrow_count']; ?></span></td>
-                                                                                <td><span class="badge bg-secondary"><?php echo $course['student_count']; ?></span></td>
-                                                                            </tr>
-                                                                            <?php endforeach; ?>
-                                                                        <?php else: ?>
-                                                                            <tr>
-                                                                                <td colspan="4" class="text-center text-muted">No data available</td>
-                                                                            </tr>
-                                                                        <?php endif; ?>
-                                                                    </tbody>
-                                                                </table>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <?php endif; ?>
-                                    
-                                            <!-- Ticket Daily Trend Chart -->
-                                            <?php if ($ticket_analytics && !empty($ticket_analytics['daily_trend'])): ?>
-                                            <div class="row mb-4">
-                                                <div class="col-12">
-                                                    <div class="card">
-                                                        <div class="card-header bg-yellow-light">
-                                                            <h5 class="mb-0 text-primary-custom">Daily Ticket Creation Trend</h5>
-                                                        </div>
-                                                        <div class="card-body">
-                                                            <div class="chart-container">
-                                                                <canvas id="ticketDailyTrendChart"></canvas>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <?php endif; ?>
-                                    
-                                        </div>
-                                    
-                                        <!-- Chart.js Scripts -->
-                                        <script>
-                                            // Tickets by Status
-                                            <?php if ($ticket_analytics && !empty($ticket_analytics['by_status'])): ?>
-                                            const ticketStatusCtx = document.getElementById('ticketStatusChart').getContext('2d');
-                                            new Chart(ticketStatusCtx, {
-                                                type: 'doughnut',
-                                                data: {
-                                                    labels: <?php echo json_encode(array_column($ticket_analytics['by_status'], 'status')); ?>,
-                                                    datasets: [{
-                                                        data: <?php echo json_encode(array_column($ticket_analytics['by_status'], 'count')); ?>,
-                                                        backgroundColor: [
-                                                            '#f0c209', '#0a1497', '#28a745', '#dc3545', '#6c757d', '#17a2b8', '#ffc107'
-                                                        ]
-                                                    }]
-                                                },
-                                                options: {
-                                                    plugins: {
-                                                        legend: { position: 'bottom' }
-                                                    }
-                                                }
-                                            });
-                                            <?php endif; ?>
-                                    
-                                            // Tickets by Priority
-                                            <?php if ($ticket_analytics && !empty($ticket_analytics['by_priority'])): ?>
-                                            const ticketPriorityCtx = document.getElementById('ticketPriorityChart').getContext('2d');
-                                            new Chart(ticketPriorityCtx, {
-                                                type: 'pie',
-                                                data: {
-                                                    labels: <?php echo json_encode(array_column($ticket_analytics['by_priority'], 'priority')); ?>,
-                                                    datasets: [{
-                                                        data: <?php echo json_encode(array_column($ticket_analytics['by_priority'], 'count')); ?>,
-                                                        backgroundColor: [
-                                                            '#6c757d', '#0a1497', '#f0c209', '#dc3545'
-                                                        ]
-                                                    }]
-                                                },
-                                                options: {
-                                                    plugins: {
-                                                        legend: { position: 'bottom' }
-                                                    }
-                                                }
-                                            });
-                                            <?php endif; ?>
-                                    
-                                            // Equipment by Category
-                                            <?php if ($equipment_analytics && !empty($equipment_analytics['by_category'])): ?>
-                                            const equipmentCategoryCtx = document.getElementById('equipmentCategoryChart').getContext('2d');
-                                            new Chart(equipmentCategoryCtx, {
-                                                type: 'bar',
-                                                data: {
-                                                    labels: <?php echo json_encode(array_column($equipment_analytics['by_category'], 'category')); ?>,
-                                                    datasets: [{
-                                                        label: 'Borrows',
-                                                        data: <?php echo json_encode(array_column($equipment_analytics['by_category'], 'borrow_count')); ?>,
-                                                        backgroundColor: '#0a1497'
-                                                    }]
-                                                },
-                                                options: {
-                                                    plugins: {
-                                                        legend: { display: false }
-                                                    },
-                                                    scales: {
-                                                        x: { beginAtZero: true },
-                                                        y: { beginAtZero: true }
-                                                    }
-                                                }
-                                            });
-                                            <?php endif; ?>
-                                    
-                                            // Ticket Daily Trend
-                                            <?php if ($ticket_analytics && !empty($ticket_analytics['daily_trend'])): ?>
-                                            const ticketDailyTrendCtx = document.getElementById('ticketDailyTrendChart').getContext('2d');
-                                            new Chart(ticketDailyTrendCtx, {
-                                                type: 'line',
-                                                data: {
-                                                    labels: <?php echo json_encode(array_column($ticket_analytics['daily_trend'], 'date')); ?>,
-                                                    datasets: [{
-                                                        label: 'Tickets Created',
-                                                        data: <?php echo json_encode(array_column($ticket_analytics['daily_trend'], 'count')); ?>,
-                                                        backgroundColor: 'rgba(10, 20, 151, 0.2)',
-                                                        borderColor: '#0a1497',
-                                                        fill: true,
-                                                        tension: 0.3
-                                                    }]
-                                                },
-                                                options: {
-                                                    plugins: {
-                                                        legend: { display: false }
-                                                    },
-                                                    scales: {
-                                                        x: { beginAtZero: true },
-                                                        y: { beginAtZero: true }
-                                                    }
-                                                }
-                                            });
-                                            <?php endif; ?>
-                                        </script>
-                                        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
-                                    </body>
-                                    </html>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="4" class="text-center text-muted">No data available</td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-yellow-light">
+                        <h5 class="mb-0 text-primary-custom">Average Borrow Duration</h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <h3 class="text-primary-custom"><?php echo $equipment_analytics['avg_borrow_duration']; ?> days</h3>
+                        <p class="text-muted">Average time items are borrowed</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <!-- Student Analytics -->
+        <?php if ($student_analytics): ?>
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-yellow-light">
+                        <h5 class="mb-0 text-primary-custom">Most Active Students (Tickets)</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Student ID</th>
+                                        <th>Course</th>
+                                        <th>Tickets</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if (!empty($student_analytics['most_active_tickets'])): ?>
+                                        <?php foreach ($student_analytics['most_active_tickets'] as $student): ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars($student['first_name'] . ' ' . $student['last_name']); ?></td>
+                                            <td><?php echo htmlspecialchars($student['student_id']); ?></td>
+                                            <td><?php echo htmlspecialchars($student['course']); ?></td>
+                                            <td><span class="badge bg-primary"><?php echo $student['ticket_count']; ?></span></td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="4" class="text-center text-muted">No data available</td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-yellow-light">
+                        <h5 class="mb-0 text-primary-custom">Most Active Students (Borrowing)</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Student ID</th>
+                                        <th>Course</th>
+                                        <th>Borrows</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if (!empty($student_analytics['most_active_borrowing'])): ?>
+                                        <?php foreach ($student_analytics['most_active_borrowing'] as $student): ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars($student['first_name'] . ' ' . $student['last_name']); ?></td>
+                                            <td><?php echo htmlspecialchars($student['student_id']); ?></td>
+                                            <td><?php echo htmlspecialchars($student['course']); ?></td>
+                                            <td><span class="badge bg-info"><?php echo $student['borrow_count']; ?></span></td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="4" class="text-center text-muted">No data available</td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-yellow-light">
+                        <h5 class="mb-0 text-primary-custom">Activity by Course</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Course</th>
+                                        <th>Tickets</th>
+                                        <th>Borrows</th>
+                                        <th>Students</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if (!empty($student_analytics['by_course'])): ?>
+                                        <?php foreach ($student_analytics['by_course'] as $course): ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars($course['course']); ?></td>
+                                            <td><span class="badge bg-primary"><?php echo $course['ticket_count']; ?></span></td>
+                                            <td><span class="badge bg-info"><?php echo $course['borrow_count']; ?></span></td>
+                                            <td><span class="badge bg-secondary"><?php echo $course['student_count']; ?></span></td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="4" class="text-center text-muted">No data available</td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <!-- Ticket Daily Trend Chart -->
+        <?php if ($ticket_analytics && !empty($ticket_analytics['daily_trend'])): ?>
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-yellow-light">
+                        <h5 class="mb-0 text-primary-custom">Daily Ticket Creation Trend</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="ticketDailyTrendChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
+
+    </div>
+
+    <!-- Chart.js Scripts -->
+    <script>
+        // Tickets by Status
+        <?php if ($ticket_analytics && !empty($ticket_analytics['by_status'])): ?>
+        const ticketStatusCtx = document.getElementById('ticketStatusChart').getContext('2d');
+        new Chart(ticketStatusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: <?php echo json_encode(array_column($ticket_analytics['by_status'], 'status')); ?>,
+                datasets: [{
+                    data: <?php echo json_encode(array_column($ticket_analytics['by_status'], 'count')); ?>,
+                    backgroundColor: [
+                        '#f0c209', '#0a1497', '#28a745', '#dc3545', '#6c757d', '#17a2b8', '#ffc107'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { 
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    }
+                }
+            }
+        });
+        <?php endif; ?>
+
+        // Tickets by Priority
+        <?php if ($ticket_analytics && !empty($ticket_analytics['by_priority'])): ?>
+        const ticketPriorityCtx = document.getElementById('ticketPriorityChart').getContext('2d');
+        new Chart(ticketPriorityCtx, {
+            type: 'pie',
+            data: {
+                labels: <?php echo json_encode(array_column($ticket_analytics['by_priority'], 'priority')); ?>,
+                datasets: [{
+                    data: <?php echo json_encode(array_column($ticket_analytics['by_priority'], 'count')); ?>,
+                    backgroundColor: [
+                        '#6c757d', '#0a1497', '#f0c209', '#dc3545'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { 
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    }
+                }
+            }
+        });
+        <?php endif; ?>
+
+        // Equipment by Category
+        <?php if ($equipment_analytics && !empty($equipment_analytics['by_category'])): ?>
+        const equipmentCategoryCtx = document.getElementById('equipmentCategoryChart').getContext('2d');
+        new Chart(equipmentCategoryCtx, {
+            type: 'bar',
+            data: {
+                labels: <?php echo json_encode(array_column($equipment_analytics['by_category'], 'category')); ?>,
+                datasets: [{
+                    label: 'Borrows',
+                    data: <?php echo json_encode(array_column($equipment_analytics['by_category'], 'borrow_count')); ?>,
+                    backgroundColor: '#0a1497'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: { beginAtZero: true },
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+        <?php endif; ?>
+
+        // Ticket Daily Trend
+        <?php if ($ticket_analytics && !empty($ticket_analytics['daily_trend'])): ?>
+        const ticketDailyTrendCtx = document.getElementById('ticketDailyTrendChart').getContext('2d');
+        new Chart(ticketDailyTrendCtx, {
+            type: 'line',
+            data: {
+                labels: <?php echo json_encode(array_column($ticket_analytics['daily_trend'], 'date')); ?>,
+                datasets: [{
+                    label: 'Tickets Created',
+                    data: <?php echo json_encode(array_column($ticket_analytics['daily_trend'], 'count')); ?>,
+                    backgroundColor: 'rgba(10, 20, 151, 0.2)',
+                    borderColor: '#0a1497',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: { beginAtZero: true },
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+        <?php endif; ?>
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

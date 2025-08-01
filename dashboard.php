@@ -467,6 +467,7 @@ if (isset($_GET['logout'])) {
                             <a href="feedback.php" class="text-decoration-none">
                                 <i class="fas fa-comments text-secondary" style="font-size: 2rem;"></i>
                                 <h3 class="text-primary-custom mt-2">Feedback</h3>
+                                <p class="text-muted mb-0">View Feedback</p>
                             </a> 
                         </div>
                     </div>
@@ -475,8 +476,20 @@ if (isset($_GET['logout'])) {
                     <div class="card stats-card">
                         <div class="card-body text-center">
                             <a href="reports.php" class="text-decoration-none">
-                                <i class="fas fa-chart text-secondary" style="font-size: 2rem;"></i>
+                                <i class="fas fa-chart-bar text-secondary" style="font-size: 2rem;"></i>
                                 <h3 class="text-primary-custom mt-2">Reports</h3>
+                                <p class="text-muted mb-0">View Statistics</p>
+                            </a> 
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <a href="admin_add_request.php" class="text-decoration-none">
+                                <i class="fas fa-user-plus text-primary" style="font-size: 2rem;"></i>
+                                <h3 class="text-primary-custom mt-2">Add Request</h3>
+                                <p class="text-muted mb-0">For Phone Calls</p>
                             </a> 
                         </div>
                     </div>

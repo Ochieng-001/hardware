@@ -211,6 +211,77 @@ JOIN students s ON bf.student_id = s.student_id
 JOIN equipment e ON br.equipment_id = e.id
 LEFT JOIN admins a ON br.approved_by = a.id;
 
+
+-- Database updates to support admin-created requests (phone requests)
+
+-- Add fields to assistance_tickets table for phone requests
+ALTER TABLE assistance_tickets 
+ADD COLUMN phone_request BOOLEAN DEFAULT FALSE COMMENT 'Indicates if this request was made via phone call',
+ADD COLUMN caller_notes TEXT COMMENT 'Admin notes about the phone call';
+
+-- Add fields to borrowing_requests table for phone requests  
+ALTER TABLE borrowing_requests 
+ADD COLUMN phone_request BOOLEAN DEFAULT FALSE COMMENT 'Indicates if this request was made via phone call',
+ADD COLUMN caller_notes TEXT COMMENT 'Admin notes about the phone call';
+
+-- Add index for phone requests for better performance
+CREATE INDEX idx_assistance_tickets_phone ON assistance_tickets(phone_request);
+CREATE INDEX idx_borrowing_requests_phone ON borrowing_requests(phone_request);
+
+-- Update the views to include phone request information
+DROP VIEW IF EXISTS assistance_feedback_summary;
+CREATE VIEW assistance_feedback_summary AS
+SELECT 
+    af.ticket_id,
+    at.ticket_number,
+    at.title,
+    at.phone_request,
+    at.caller_notes,
+    af.rating,
+    af.satisfaction,
+    af.response_time_rating,
+    af.service_quality_rating,
+    af.staff_helpfulness_rating,
+    af.comment,
+    af.would_recommend,
+    af.created_at as feedback_date,
+    CONCAT(s.first_name, ' ', s.last_name) as student_name,
+    s.course,
+    a.full_name as assigned_to_name
+FROM assistance_feedback af
+JOIN assistance_tickets at ON af.ticket_id = at.id
+JOIN students s ON af.student_id = s.student_id
+LEFT JOIN admins a ON at.assigned_to = a.id;
+
+DROP VIEW IF EXISTS borrowing_feedback_summary;
+CREATE VIEW borrowing_feedback_summary AS
+SELECT 
+    bf.request_id,
+    br.request_number,
+    br.phone_request,
+    br.caller_notes,
+    e.name as equipment_name,
+    e.model,
+    bf.rating,
+    bf.satisfaction,
+    bf.equipment_condition_rating,
+    bf.service_quality_rating,
+    bf.process_efficiency_rating,
+    bf.comment,
+    bf.equipment_issues,
+    bf.would_recommend,
+    bf.created_at as feedback_date,
+    CONCAT(s.first_name, ' ', s.last_name) as student_name,
+    s.course,
+    a.full_name as approved_by_name
+FROM borrowing_feedback bf
+JOIN borrowing_requests br ON bf.request_id = br.id
+JOIN students s ON bf.student_id = s.student_id
+JOIN equipment e ON br.equipment_id = e.id
+LEFT JOIN admins a ON br.approved_by = a.id;
+
+
+
 -- Insert sample data
 
 -- Equipment Categories

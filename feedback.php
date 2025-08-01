@@ -186,7 +186,7 @@ function getSatisfactionBadge($satisfaction) {
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
-            <a class="navbar-brand" href="admin_dashboard.php">
+            <a class="navbar-brand" href="dashboard.php">
                 <i class="fas fa-tools me-2"></i>Hardware Lab Admin
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
